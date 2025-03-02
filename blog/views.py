@@ -3,6 +3,7 @@ from .models import Post
 from django.http import Http404
 from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.views.generic import ListView
+from .forms import EmailPostForm
 
 class PostListView(ListView):
     """Generic class-based view listing a queryset."""
@@ -13,8 +14,8 @@ class PostListView(ListView):
 
 def post_list(request):
     try:
-        post_list = Post.published.all()
-        paginator = Paginator(post_list, 3)
+        posts_list = Post.published.all()
+        paginator = Paginator(posts_list, 3)
         page_number = request.GET.get('page', 1)
         try:
             posts = paginator.page(page_number)
@@ -30,3 +31,19 @@ def post_detail(request, year, month, day, post):
     posts = get_object_or_404(Post, status=Post.Status.PUBLISHED, slug=post, publish__year=year,
                               publish__month=month, publish__day=day)
     return render(request, 'post/detail.html', {'post': posts})
+
+def post_share(request, post_id):
+    """Share a post via email."""
+    post = get_object_or_404(Post, id=post_id, status=Post.Status.PUBLISHED)
+
+    if request.method == 'POST':
+        # Form was submitted
+        form = EmailPostForm(request.POST)
+
+        if form.is_valid():
+            # Form fields passed validation
+            cd = form.cleaned_data
+            # ... send email
+        else:
+            form = EmailPostForm()
+    return render(request, 'post/share.html', {'post': post, 'form': form})
