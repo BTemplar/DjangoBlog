@@ -39,17 +39,15 @@ def post_share(request, post_id):
     sent = False
 
     if request.method == 'POST':
-        # Form was submitted
         form = EmailPostForm(request.POST)
-
         if form.is_valid():
-            # Form fields passed validation
             cd = form.cleaned_data
-            post_url = request.build_absolute_uti(post.get_absolute_url())
+            post_url = request.build_absolute_uri(post.get_absolute_url())
             subject = f"{cd['name']} recommends you read {post.title}"
-            message = f"Read {post.title} at {post_url}\n\n{cd['name']}\'s comments: {cd['comments']} "
+            message = f"Read {post.title} at {post_url}\n\n{cd['name']}'s comments: {cd['comments']}"
             send_mail(subject, message, 'admin@myblog.com', [cd['to']])
             sent = True
-        else:
-            form = EmailPostForm()
+    else:
+        form = EmailPostForm()
+
     return render(request, 'post/share.html', {'post': post, 'form': form, 'sent': sent})
